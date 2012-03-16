@@ -19,26 +19,25 @@
 
 include_recipe "build-essential"
 include_recipe "git"
-
-package "nodejs"
+include_recipe "nodejs"
 
 execute "checkout statsd" do
-  command "git clone git://github.com/etsy/statsd"
-  creates "/tmp/statsd"
-  cwd "/tmp"
+  command "git clone -b v0.1.0 git://github.com/etsy/statsd"
+  creates "#{Chef::Config['file_cache_path']}/statsd"
+  cwd "#{Chef::Config['file_cache_path']}"
 end
 
 package "debhelper"
 
 execute "build debian package" do
   command "dpkg-buildpackage -us -uc"
-  creates "/tmp/statsd_0.0.1_all.deb"
-  cwd "/tmp/statsd"
+  creates "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+  cwd "#{Chef::Config['file_cache_path']}/statsd"
 end
 
 dpkg_package "statsd" do
   action :install
-  source "/tmp/statsd_0.0.1_all.deb"
+  source "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
 end
 
 template "/etc/statsd/rdioConfig.js" do
