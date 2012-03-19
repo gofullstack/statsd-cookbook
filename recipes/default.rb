@@ -42,13 +42,9 @@ end
 
 template "/etc/statsd/rdioConfig.js" do
   source "rdioConfig.js.erb"
-  mode 0644
-  variables(
-    :port => node[:statsd][:port],
-    :graphitePort => node[:statsd][:graphite_port],
-    :graphiteHost => node[:statsd][:graphite_host]
-  )
-
+  owner 'statsd'
+  group 'statsd'
+  mode 0600
   notifies :restart, "service[statsd]"
 end
 

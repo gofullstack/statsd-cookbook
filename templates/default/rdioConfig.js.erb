@@ -1,5 +1,8 @@
 {
-graphitePort: <%= @graphitePort %>
-, graphiteHost: "<%= @graphiteHost %>"
-, port: <%= @port %>
+    graphiteHost: "<%= node['statsd']['graphite_host'] %>",
+    graphitePort: <%= node['statsd']['graphite_port'] %>,
+    address: "<%= node['statsd']['address'] %>",
+    port: <%= node['statsd']['port'] %>,
+    mgmt_address: "<%= node['statsd']['mgmt_address'] %>",
+    mgmt_port: <%= node['statsd']['mgmt_port'] %>
 }
