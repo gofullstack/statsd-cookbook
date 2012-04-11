@@ -21,6 +21,14 @@ include_recipe "build-essential"
 include_recipe "git"
 include_recipe "nodejs"
 
+user 'statsd' do
+  shell '/bin/false'
+end
+group 'statsd' do
+  members ['statsd']
+  append true
+end
+
 execute "checkout statsd" do
   command "git clone -b v0.1.0 git://github.com/etsy/statsd"
   creates "#{Chef::Config['file_cache_path']}/statsd"
