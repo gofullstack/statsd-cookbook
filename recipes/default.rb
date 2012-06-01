@@ -22,8 +22,11 @@ include_recipe "git"
 include_recipe "nodejs"
 
 user 'statsd' do
-  shell '/bin/false'
+  comment "statsd"
+  system true
+  shell "/bin/false"
 end
+
 group 'statsd' do
   members ['statsd']
   append true
@@ -35,17 +38,54 @@ execute "checkout statsd" do
   cwd "#{Chef::Config['file_cache_path']}"
 end
 
-package "debhelper"
+case node['platform']
+when 'centos', 'redhat'
+  execute 'copy statsd clone to /opt' do
+    command "cp -R #{Chef::Config['file_cache_path']}/statsd /opt"
+    creates '/opt/statsd'
+  end
 
-execute "build debian package" do
-  command "dpkg-buildpackage -us -uc"
-  creates "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
-  cwd "#{Chef::Config['file_cache_path']}/statsd"
-end
+  %w[ etc opt ].each do |dir|
+    directory "/#{dir}/statsd" do
+      owner 'statsd'
+      group 'statsd'
+      mode '0755'
+      recursive true
+    end
+  end
 
-dpkg_package "statsd" do
-  action :install
-  source "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+  execute 'install node forever module' do
+    command 'npm install -g forever'
+    creates '/usr/bin/forever'
+  end
+
+  template '/etc/init.d/statsd' do
+    source 'init.redhat.erb'
+    mode '0755'
+  end
+when 'ubuntu'
+  package "debhelper"
+
+  execute "build debian package" do
+    command "dpkg-buildpackage -us -uc"
+    creates "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+    cwd "#{Chef::Config['file_cache_path']}/statsd"
+  end
+
+  dpkg_package "statsd" do
+    action :install
+    source "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+  end
+
+  cookbook_file "/usr/share/statsd/scripts/start" do
+    source "upstart.start"
+    mode 0755
+  end
+
+  cookbook_file "/etc/init/statsd.conf" do
+    source "upstart.conf"
+    mode 0644
+  end
 end
 
 template "/etc/statsd/rdioConfig.js" do
@@ -54,22 +94,6 @@ template "/etc/statsd/rdioConfig.js" do
   group 'statsd'
   mode 0600
   notifies :restart, "service[statsd]"
-end
-
-cookbook_file "/usr/share/statsd/scripts/start" do
-  source "upstart.start"
-  mode 0755
-end
-
-cookbook_file "/etc/init/statsd.conf" do
-  source "upstart.conf"
-  mode 0644
-end
-
-user "statsd" do
-  comment "statsd"
-  system true
-  shell "/bin/false"
 end
 
 service "statsd" do
