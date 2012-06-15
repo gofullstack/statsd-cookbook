@@ -33,7 +33,7 @@ group 'statsd' do
 end
 
 execute "checkout statsd" do
-  command "git clone -b v0.1.0 git://github.com/etsy/statsd"
+  command "git clone -b v#{node['statsd']['version']} git://github.com/etsy/statsd"
   creates "#{Chef::Config['file_cache_path']}/statsd"
   cwd "#{Chef::Config['file_cache_path']}"
 end
@@ -68,13 +68,13 @@ when 'ubuntu'
 
   execute "build debian package" do
     command "dpkg-buildpackage -us -uc"
-    creates "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+    creates "#{Chef::Config['file_cache_path']}/statsd_#{node['statsd']['deb_package_version']}_all.deb"
     cwd "#{Chef::Config['file_cache_path']}/statsd"
   end
 
   dpkg_package "statsd" do
     action :install
-    source "#{Chef::Config['file_cache_path']}/statsd_0.0.2_all.deb"
+    source "#{Chef::Config['file_cache_path']}/statsd_#{node['statsd']['deb_package_version']}_all.deb"
   end
 
   cookbook_file "/usr/share/statsd/scripts/start" do

@@ -1,3 +1,5 @@
+default['statsd']['version'] = '0.3.0'
+default['statsd']['deb_package_version'] = '0.0.3'
 if node['cloud'] && node['cloud']['local_ipv4']
   default[:statsd][:address] = node['cloud']['local_ipv4']
   default[:statsd][:mgmt_address] = node['cloud']['local_ipv4']
