@@ -32,10 +32,10 @@ group 'statsd' do
   append true
 end
 
-execute "checkout statsd" do
-  command "git clone -b v#{node['statsd']['version']} git://github.com/etsy/statsd"
-  creates "#{Chef::Config['file_cache_path']}/statsd"
-  cwd "#{Chef::Config['file_cache_path']}"
+git "#{Chef::Config['file_cache_path']}/statsd" do
+  repository 'git://github.com/etsy/statsd'
+  revision "v#{node['statsd']['version']}"
+  action :checkout
 end
 
 case node['platform']
